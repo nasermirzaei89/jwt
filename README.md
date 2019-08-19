@@ -5,6 +5,7 @@ JSON Web Token library
 [![Build Status](https://travis-ci.org/nasermirzaei89/jwt.svg?branch=master)](https://travis-ci.org/nasermirzaei89/jwt)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nasermirzaei89/jwt)](https://goreportcard.com/report/github.com/nasermirzaei89/jwt)
 [![GolangCI](https://golangci.com/badges/github.com/nasermirzaei89/jwt.svg)](https://golangci.com/r/github.com/nasermirzaei89/jwt)
+[![Codecov](https://codecov.io/gh/nasermirzaei89/jwt/branch/master/graph/badge.svg)](https://codecov.io/gh/nasermirzaei89/jwt)
 [![GoDoc](https://godoc.org/github.com/nasermirzaei89/jwt?status.svg)](https://godoc.org/github.com/nasermirzaei89/jwt)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://raw.githubusercontent.com/nasermirzaei89/jwt/master/LICENSE)
 
