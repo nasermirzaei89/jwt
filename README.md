@@ -2,6 +2,8 @@
 
 JWT Token library
 
+[![Build Status](https://travis-ci.org/nasermirzaei89/jwt.svg?branch=master)](https://travis-ci.org/nasermirzaei89/jwt)
+
 ## Usage
 
 ### Sign
