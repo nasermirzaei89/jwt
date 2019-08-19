@@ -12,13 +12,16 @@ import (
 	"time"
 )
 
+// Header is json web token header
 type Header struct {
 	Algorithm Algorithm `json:"alg"`
 	Type      string    `json:"typ"`
 }
 
+// Payload is json web token payload
 type Payload map[string]interface{}
 
+// Token interface
 type Token interface {
 	SetIssuer(iss string)
 	GetIssuer() (string, bool)
@@ -39,8 +42,10 @@ type Token interface {
 	Validate() error
 }
 
+// Algorithm type
 type Algorithm string
 
+// Algorithms
 const (
 	HS256 Algorithm = "HS256"
 	HS384 Algorithm = "HS384"
@@ -225,6 +230,7 @@ func (t *token) Validate() error {
 	return nil
 }
 
+// New returns new json web token
 func New(alg Algorithm) Token {
 	return &token{
 		header: Header{
@@ -235,6 +241,7 @@ func New(alg Algorithm) Token {
 	}
 }
 
+// Sign the token with secret key
 func Sign(t Token, secret []byte) (string, error) {
 	h := t.(interface{ GetHeader() Header }).GetHeader()
 	header, err := json.Marshal(h)
@@ -252,21 +259,22 @@ func Sign(t Token, secret []byte) (string, error) {
 	switch h.Algorithm {
 	case HS256:
 		mac := hmac.New(sha256.New, secret)
-		mac.Write([]byte(unsignedToken))
+		_, _ = mac.Write([]byte(unsignedToken))
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
 	case HS384:
 		mac := hmac.New(sha512.New384, secret)
-		mac.Write([]byte(unsignedToken))
+		_, _ = mac.Write([]byte(unsignedToken))
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
 	case HS512:
 		mac := hmac.New(sha512.New, secret)
-		mac.Write([]byte(unsignedToken))
+		_, _ = mac.Write([]byte(unsignedToken))
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
 	default:
 		return "", errors.New("unsupported algorithm")
 	}
 }
 
+// Verify token string with secret key
 func Verify(t string, secret []byte) error {
 	arr := strings.Split(t, ".")
 	if len(arr) != 3 {
@@ -292,7 +300,7 @@ func Verify(t string, secret []byte) error {
 	switch tok.header.Algorithm {
 	case HS256:
 		mac := hmac.New(sha256.New, secret)
-		mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
+		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
@@ -304,7 +312,7 @@ func Verify(t string, secret []byte) error {
 		return nil
 	case HS384:
 		mac := hmac.New(sha512.New384, secret)
-		mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
+		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
@@ -316,7 +324,7 @@ func Verify(t string, secret []byte) error {
 		return nil
 	case HS512:
 		mac := hmac.New(sha512.New, secret)
-		mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
+		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
@@ -331,6 +339,7 @@ func Verify(t string, secret []byte) error {
 	}
 }
 
+// Parse token string without verifying
 func Parse(t string) (Token, error) {
 	arr := strings.Split(t, ".")
 	if len(arr) != 3 {
