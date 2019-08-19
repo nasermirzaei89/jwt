@@ -3,6 +3,7 @@
 JWT Token library
 
 [![Build Status](https://travis-ci.org/nasermirzaei89/jwt.svg?branch=master)](https://travis-ci.org/nasermirzaei89/jwt)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://raw.githubusercontent.com/nasermirzaei89/jwt/master/LICENSE)
 
 ## Usage
 
