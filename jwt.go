@@ -305,7 +305,7 @@ func Verify(t string, secret []byte) error {
 		if err != nil {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
 		}
-		if hmac.Equal(mac.Sum(nil), sig) {
+		if !hmac.Equal(mac.Sum(nil), sig) {
 			return errors.New("invalid token signature")
 		}
 
@@ -317,7 +317,7 @@ func Verify(t string, secret []byte) error {
 		if err != nil {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
 		}
-		if hmac.Equal(mac.Sum(nil), sig) {
+		if !hmac.Equal(mac.Sum(nil), sig) {
 			return errors.New("invalid token signature")
 		}
 
@@ -329,7 +329,7 @@ func Verify(t string, secret []byte) error {
 		if err != nil {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
 		}
-		if hmac.Equal(mac.Sum(nil), sig) {
+		if !hmac.Equal(mac.Sum(nil), sig) {
 			return errors.New("invalid token signature")
 		}
 
