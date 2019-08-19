@@ -24,21 +24,21 @@ type Payload map[string]interface{}
 // Token interface
 type Token interface {
 	SetIssuer(iss string)
-	GetIssuer() (string, bool)
+	GetIssuer() (string, error)
 	SetSubject(sub string)
-	GetSubject() (string, bool)
+	GetSubject() (string, error)
 	SetAudience(aud ...string)
-	GetAudience() ([]string, bool)
+	GetAudience() ([]string, error)
 	SetExpiresAt(exp time.Time)
-	GetExpiresAt() (time.Time, bool)
+	GetExpiresAt() (time.Time, error)
 	SetNotBefore(nbf time.Time)
-	GetNotBefore() (time.Time, bool)
+	GetNotBefore() (time.Time, error)
 	SetIssuedAt(iat time.Time)
-	GetIssuedAt() (time.Time, bool)
+	GetIssuedAt() (time.Time, error)
 	SetJWTID(jti string)
-	GetJWTID() (string, bool)
+	GetJWTID() (string, error)
 	Set(key string, value interface{})
-	Get(key string) (interface{}, bool)
+	Get(key string) (interface{}, error)
 	Validate() error
 }
 
@@ -50,16 +50,19 @@ const (
 	HS256 Algorithm = "HS256"
 	HS384 Algorithm = "HS384"
 	HS512 Algorithm = "HS512"
-	RS256 Algorithm = "RS256"
-	RS384 Algorithm = "RS384"
-	RS512 Algorithm = "RS512"
-	ES256 Algorithm = "ES256"
-	ES384 Algorithm = "ES384"
-	ES512 Algorithm = "ES512"
-	PS256 Algorithm = "PS256"
-	PS384 Algorithm = "PS384"
-	PS512 Algorithm = "PS512"
+	//RS256 Algorithm = "RS256"
+	//RS384 Algorithm = "RS384"
+	//RS512 Algorithm = "RS512"
+	//ES256 Algorithm = "ES256"
+	//ES384 Algorithm = "ES384"
+	//ES512 Algorithm = "ES512"
+	//PS256 Algorithm = "PS256"
+	//PS384 Algorithm = "PS384"
+	//PS512 Algorithm = "PS512"
 )
+
+var ErrClaimNotFound = errors.New("claim not found")
+var ErrInvalidClaimType = errors.New("invalid claim type")
 
 type token struct {
 	header  Header
@@ -78,150 +81,155 @@ func (t *token) SetIssuer(iss string) {
 	t.Set("iss", iss)
 }
 
-func (t *token) GetIssuer() (string, bool) {
-	value, ok := t.Get("iss")
+func (t *token) GetIssuer() (string, error) {
+	value, ok := t.payload["iss"]
 	if !ok {
-		return "", false
+		return "", ErrClaimNotFound
 	}
 
 	iss, ok := value.(string)
 	if !ok {
-		return "", false
+		return "", ErrInvalidClaimType
 	}
 
-	return iss, true
+	return iss, nil
 }
 
 func (t *token) SetSubject(sub string) {
 	t.Set("sub", sub)
 }
 
-func (t *token) GetSubject() (string, bool) {
-	value, ok := t.Get("sub")
+func (t *token) GetSubject() (string, error) {
+	value, ok := t.payload["sub"]
 	if !ok {
-		return "", false
+		return "", ErrClaimNotFound
 	}
 
 	sub, ok := value.(string)
 	if !ok {
-		return "", false
+		return "", ErrInvalidClaimType
 	}
 
-	return sub, true
+	return sub, nil
 }
 
 func (t *token) SetAudience(aud ...string) {
 	t.Set("aud", aud)
 }
 
-func (t *token) GetAudience() ([]string, bool) {
-	value, ok := t.Get("aud")
+func (t *token) GetAudience() ([]string, error) {
+	value, ok := t.payload["aud"]
 	if !ok {
-		return nil, false
+		return nil, ErrClaimNotFound
 	}
 
 	auds, ok := value.([]string)
 	if !ok {
 		aud, ok := value.(string)
 		if !ok {
-			return nil, false
+			return nil, ErrInvalidClaimType
 		}
 
-		return []string{aud}, true
+		return []string{aud}, nil
 	}
 
-	return auds, true
+	return auds, nil
 }
 
 func (t *token) SetExpiresAt(exp time.Time) {
 	t.Set("exp", exp.Unix())
 }
 
-func (t *token) GetExpiresAt() (time.Time, bool) {
-	value, ok := t.Get("exp")
+func (t *token) GetExpiresAt() (time.Time, error) {
+	value, ok := t.payload["exp"]
 	if !ok {
-		return time.Time{}, false
+		return time.Time{}, ErrClaimNotFound
 	}
 
 	exp, ok := value.(int64)
 	if !ok {
-		return time.Time{}, false
+		return time.Time{}, ErrInvalidClaimType
 	}
 
-	return time.Unix(exp, 0), true
+	return time.Unix(exp, 0), nil
 }
 
 func (t *token) SetNotBefore(nbf time.Time) {
 	t.Set("nbf", nbf.Unix())
 }
 
-func (t *token) GetNotBefore() (time.Time, bool) {
-	value, ok := t.Get("nbf")
+func (t *token) GetNotBefore() (time.Time, error) {
+	value, ok := t.payload["nbf"]
 	if !ok {
-		return time.Time{}, false
+		return time.Time{}, ErrClaimNotFound
 	}
 
 	nbf, ok := value.(int64)
 	if !ok {
-		return time.Time{}, false
+		return time.Time{}, ErrInvalidClaimType
 	}
 
-	return time.Unix(nbf, 0), true
+	return time.Unix(nbf, 0), nil
 }
 
 func (t *token) SetIssuedAt(iat time.Time) {
 	t.Set("iat", iat.Unix())
 }
 
-func (t *token) GetIssuedAt() (time.Time, bool) {
-	value, ok := t.Get("iat")
+func (t *token) GetIssuedAt() (time.Time, error) {
+	value, ok := t.payload["iat"]
 	if !ok {
-		return time.Time{}, false
+		return time.Time{}, ErrClaimNotFound
 	}
 
 	iat, ok := value.(int64)
 	if !ok {
-		return time.Time{}, false
+		return time.Time{}, ErrInvalidClaimType
 	}
 
-	return time.Unix(iat, 0), true
+	return time.Unix(iat, 0), nil
 }
 
 func (t *token) SetJWTID(jti string) {
 	t.Set("jti", jti)
 }
 
-func (t *token) GetJWTID() (string, bool) {
-	value, ok := t.Get("jti")
+func (t *token) GetJWTID() (string, error) {
+	value, ok := t.payload["jti"]
 	if !ok {
-		return "", false
+		return "", ErrClaimNotFound
 	}
 
 	jti, ok := value.(string)
 	if !ok {
-		return "", false
+		return "", ErrInvalidClaimType
 	}
 
-	return jti, true
+	return jti, nil
 }
 
 func (t *token) Set(key string, value interface{}) {
 	t.payload["key"] = value
 }
 
-func (t *token) Get(key string) (interface{}, bool) {
+func (t *token) Get(key string) (interface{}, error) {
 	value, ok := t.payload[key]
-	return value, ok
+	if !ok {
+		return nil, ErrClaimNotFound
+	}
+	return value, nil
 }
 
 func (t *token) Validate() error {
-	if exp, ok := t.GetExpiresAt(); ok {
+	exp, err := t.GetExpiresAt()
+	if err == nil || err == ErrClaimNotFound {
 		if exp.Before(time.Now()) {
 			return errors.New("token expired")
 		}
 	}
 
-	if nbf, ok := t.GetNotBefore(); ok {
+	nbf, err := t.GetNotBefore()
+	if err == nil || err == ErrClaimNotFound {
 		if nbf.After(time.Now()) {
 			return errors.New("token should not be accepted for processing yet")
 		}
