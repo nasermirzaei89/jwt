@@ -1,11 +1,16 @@
 package jwt
 
 import (
+	"crypto"
 	"crypto/hmac"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"strings"
@@ -50,9 +55,9 @@ const (
 	HS256 Algorithm = "HS256"
 	HS384 Algorithm = "HS384"
 	HS512 Algorithm = "HS512"
-	//RS256 Algorithm = "RS256"
-	//RS384 Algorithm = "RS384"
-	//RS512 Algorithm = "RS512"
+	RS256 Algorithm = "RS256"
+	RS384 Algorithm = "RS384"
+	RS512 Algorithm = "RS512"
 	//ES256 Algorithm = "ES256"
 	//ES384 Algorithm = "ES384"
 	//ES512 Algorithm = "ES512"
@@ -250,7 +255,7 @@ func New(alg Algorithm) Token {
 }
 
 // Sign the token with secret key
-func Sign(t Token, secret []byte) (string, error) {
+func Sign(t Token, key []byte) (string, error) {
 	h := t.(interface{ GetHeader() Header }).GetHeader()
 	header, err := json.Marshal(h)
 	if err != nil {
@@ -266,24 +271,75 @@ func Sign(t Token, secret []byte) (string, error) {
 
 	switch h.Algorithm {
 	case HS256:
-		mac := hmac.New(sha256.New, secret)
+		mac := hmac.New(sha256.New, key)
 		_, _ = mac.Write([]byte(unsignedToken))
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
 	case HS384:
-		mac := hmac.New(sha512.New384, secret)
+		mac := hmac.New(sha512.New384, key)
 		_, _ = mac.Write([]byte(unsignedToken))
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
 	case HS512:
-		mac := hmac.New(sha512.New, secret)
+		mac := hmac.New(sha512.New, key)
 		_, _ = mac.Write([]byte(unsignedToken))
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
+	case RS256:
+		block, _ := pem.Decode(key)
+		if block == nil {
+			return "", errors.New("invalid pem received")
+		}
+		private, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return "", fmt.Errorf("error on parse private key: %s", err)
+		}
+
+		hashed := sha256.Sum256([]byte(unsignedToken))
+		b, err := rsa.SignPKCS1v15(rand.Reader, private, crypto.SHA256, hashed[:])
+		if err != nil {
+			return "", fmt.Errorf("error on sign token: %s", err)
+		}
+
+		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
+	case RS384:
+		block, _ := pem.Decode(key)
+		if block == nil {
+			return "", errors.New("invalid pem received")
+		}
+		private, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return "", fmt.Errorf("error on parse private key: %s", err)
+		}
+
+		hashed := sha512.Sum384([]byte(unsignedToken))
+		b, err := rsa.SignPKCS1v15(rand.Reader, private, crypto.SHA384, hashed[:])
+		if err != nil {
+			return "", fmt.Errorf("error on sign token: %s", err)
+		}
+
+		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
+	case RS512:
+		block, _ := pem.Decode(key)
+		if block == nil {
+			return "", errors.New("invalid pem received")
+		}
+		private, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return "", fmt.Errorf("error on parse private key: %s", err)
+		}
+
+		hashed := sha512.Sum512([]byte(unsignedToken))
+		b, err := rsa.SignPKCS1v15(rand.Reader, private, crypto.SHA512, hashed[:])
+		if err != nil {
+			return "", fmt.Errorf("error on sign token: %s", err)
+		}
+
+		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
 	default:
 		return "", errors.New("unsupported algorithm")
 	}
 }
 
 // Verify token string with secret key
-func Verify(t string, secret []byte) error {
+func Verify(t string, key []byte) error {
 	arr := strings.Split(t, ".")
 	if len(arr) != 3 {
 		return errors.New("invalid token provided")
@@ -307,7 +363,7 @@ func Verify(t string, secret []byte) error {
 
 	switch tok.header.Algorithm {
 	case HS256:
-		mac := hmac.New(sha256.New, secret)
+		mac := hmac.New(sha256.New, key)
 		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
@@ -319,7 +375,7 @@ func Verify(t string, secret []byte) error {
 
 		return nil
 	case HS384:
-		mac := hmac.New(sha512.New384, secret)
+		mac := hmac.New(sha512.New384, key)
 		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
@@ -331,7 +387,7 @@ func Verify(t string, secret []byte) error {
 
 		return nil
 	case HS512:
-		mac := hmac.New(sha512.New, secret)
+		mac := hmac.New(sha512.New, key)
 		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
@@ -339,6 +395,72 @@ func Verify(t string, secret []byte) error {
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
 			return errors.New("invalid token signature")
+		}
+
+		return nil
+	case RS256:
+		block, _ := pem.Decode(key)
+		if block == nil {
+			return errors.New("invalid pem received")
+		}
+		public, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return fmt.Errorf("error on parse public key: %s", err)
+		}
+
+		hashed := sha256.Sum256([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
+
+		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
+		if err != nil {
+			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+		}
+		err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA256, hashed[:], sig)
+		if err != nil {
+			return fmt.Errorf("invalid token signature: %s", err)
+		}
+
+		return nil
+	case RS384:
+		block, _ := pem.Decode(key)
+		if block == nil {
+			return errors.New("invalid pem received")
+		}
+		public, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return fmt.Errorf("error on parse public key: %s", err)
+		}
+
+		hashed := sha512.Sum384([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
+
+		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
+		if err != nil {
+			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+		}
+		err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA384, hashed[:], sig)
+		if err != nil {
+			return fmt.Errorf("invalid token signature: %s", err)
+		}
+
+		return nil
+	case RS512:
+		block, _ := pem.Decode(key)
+		if block == nil {
+			return errors.New("invalid pem received")
+		}
+		public, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return fmt.Errorf("error on parse public key: %s", err)
+		}
+
+		hashed := sha512.Sum512([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
+
+		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
+		if err != nil {
+			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+		}
+		err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA512, hashed[:], sig)
+		if err != nil {
+			return fmt.Errorf("invalid token signature: %s", err)
 		}
 
 		return nil
