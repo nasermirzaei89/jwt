@@ -227,14 +227,14 @@ func (t *token) Get(key string) (interface{}, error) {
 
 func (t *token) Validate() error {
 	exp, err := t.GetExpiresAt()
-	if err == nil || err == ErrClaimNotFound {
+	if err == nil {
 		if exp.Before(time.Now()) {
 			return errors.New("token expired")
 		}
 	}
 
 	nbf, err := t.GetNotBefore()
-	if err == nil || err == ErrClaimNotFound {
+	if err == nil {
 		if nbf.After(time.Now()) {
 			return errors.New("token should not be accepted for processing yet")
 		}
