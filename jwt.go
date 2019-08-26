@@ -214,7 +214,7 @@ func (t *token) GetJWTID() (string, error) {
 }
 
 func (t *token) Set(key string, value interface{}) {
-	t.payload["key"] = value
+	t.payload[key] = value
 }
 
 func (t *token) Get(key string) (interface{}, error) {
