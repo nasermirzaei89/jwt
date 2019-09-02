@@ -34,8 +34,8 @@ type Token interface {
 	GetSubject() (string, error)
 	SetAudience(aud ...string)
 	GetAudience() ([]string, error)
-	SetExpiresAt(exp time.Time)
-	GetExpiresAt() (time.Time, error)
+	SetExpirationTime(exp time.Time)
+	GetExpirationTime() (time.Time, error)
 	SetNotBefore(nbf time.Time)
 	GetNotBefore() (time.Time, error)
 	SetIssuedAt(iat time.Time)
@@ -141,11 +141,11 @@ func (t *token) GetAudience() ([]string, error) {
 	return auds, nil
 }
 
-func (t *token) SetExpiresAt(exp time.Time) {
+func (t *token) SetExpirationTime(exp time.Time) {
 	t.Set("exp", exp.Unix())
 }
 
-func (t *token) GetExpiresAt() (time.Time, error) {
+func (t *token) GetExpirationTime() (time.Time, error) {
 	value, ok := t.payload["exp"]
 	if !ok {
 		return time.Time{}, ErrClaimNotFound
@@ -226,7 +226,7 @@ func (t *token) Get(key string) (interface{}, error) {
 }
 
 func (t *token) Validate() error {
-	exp, err := t.GetExpiresAt()
+	exp, err := t.GetExpirationTime()
 	if err == nil {
 		if exp.Before(time.Now()) {
 			return errors.New("token expired")
