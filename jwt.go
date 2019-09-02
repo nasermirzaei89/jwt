@@ -66,8 +66,25 @@ const (
 	//PS512 Algorithm = "PS512"
 )
 
-var ErrClaimNotFound = errors.New("claim not found")
-var ErrInvalidClaimType = errors.New("invalid claim type")
+// Registered Claim Names
+const (
+	ClaimIssuer         = "iss"
+	ClaimSubject        = "sub"
+	ClaimAudience       = "aud"
+	ClaimExpirationTime = "exp"
+	ClaimNotBefore      = "nbf"
+	ClaimIssuedAt       = "iat"
+	ClaimJWTID          = "jti"
+)
+
+var (
+	ErrClaimNotFound            = errors.New("claim not found")
+	ErrInvalidClaimType         = errors.New("invalid claim type")
+	ErrTokenExpired             = errors.New("token expired")
+	ErrTokenShouldNotBeAccepted = errors.New("token should not be accepted for processing yet")
+	ErrInvalidTokenSignature    = errors.New("invalid token signature")
+	ErrUnsupportedAlgorithm     = errors.New("unsupported algorithm")
+)
 
 type token struct {
 	header  Header
@@ -83,11 +100,11 @@ func (t *token) GetPayload() Payload {
 }
 
 func (t *token) SetIssuer(iss string) {
-	t.Set("iss", iss)
+	t.Set(ClaimIssuer, iss)
 }
 
 func (t *token) GetIssuer() (string, error) {
-	value, ok := t.payload["iss"]
+	value, ok := t.payload[ClaimIssuer]
 	if !ok {
 		return "", ErrClaimNotFound
 	}
@@ -101,11 +118,11 @@ func (t *token) GetIssuer() (string, error) {
 }
 
 func (t *token) SetSubject(sub string) {
-	t.Set("sub", sub)
+	t.Set(ClaimSubject, sub)
 }
 
 func (t *token) GetSubject() (string, error) {
-	value, ok := t.payload["sub"]
+	value, ok := t.payload[ClaimSubject]
 	if !ok {
 		return "", ErrClaimNotFound
 	}
@@ -119,11 +136,11 @@ func (t *token) GetSubject() (string, error) {
 }
 
 func (t *token) SetAudience(aud ...string) {
-	t.Set("aud", aud)
+	t.Set(ClaimAudience, aud)
 }
 
 func (t *token) GetAudience() ([]string, error) {
-	value, ok := t.payload["aud"]
+	value, ok := t.payload[ClaimAudience]
 	if !ok {
 		return nil, ErrClaimNotFound
 	}
@@ -142,11 +159,11 @@ func (t *token) GetAudience() ([]string, error) {
 }
 
 func (t *token) SetExpirationTime(exp time.Time) {
-	t.Set("exp", exp.Unix())
+	t.Set(ClaimExpirationTime, exp.Unix())
 }
 
 func (t *token) GetExpirationTime() (time.Time, error) {
-	value, ok := t.payload["exp"]
+	value, ok := t.payload[ClaimExpirationTime]
 	if !ok {
 		return time.Time{}, ErrClaimNotFound
 	}
@@ -160,11 +177,11 @@ func (t *token) GetExpirationTime() (time.Time, error) {
 }
 
 func (t *token) SetNotBefore(nbf time.Time) {
-	t.Set("nbf", nbf.Unix())
+	t.Set(ClaimNotBefore, nbf.Unix())
 }
 
 func (t *token) GetNotBefore() (time.Time, error) {
-	value, ok := t.payload["nbf"]
+	value, ok := t.payload[ClaimNotBefore]
 	if !ok {
 		return time.Time{}, ErrClaimNotFound
 	}
@@ -178,11 +195,11 @@ func (t *token) GetNotBefore() (time.Time, error) {
 }
 
 func (t *token) SetIssuedAt(iat time.Time) {
-	t.Set("iat", iat.Unix())
+	t.Set(ClaimIssuedAt, iat.Unix())
 }
 
 func (t *token) GetIssuedAt() (time.Time, error) {
-	value, ok := t.payload["iat"]
+	value, ok := t.payload[ClaimIssuedAt]
 	if !ok {
 		return time.Time{}, ErrClaimNotFound
 	}
@@ -196,11 +213,11 @@ func (t *token) GetIssuedAt() (time.Time, error) {
 }
 
 func (t *token) SetJWTID(jti string) {
-	t.Set("jti", jti)
+	t.Set(ClaimJWTID, jti)
 }
 
 func (t *token) GetJWTID() (string, error) {
-	value, ok := t.payload["jti"]
+	value, ok := t.payload[ClaimJWTID]
 	if !ok {
 		return "", ErrClaimNotFound
 	}
@@ -229,14 +246,14 @@ func (t *token) Validate() error {
 	exp, err := t.GetExpirationTime()
 	if err == nil {
 		if exp.Before(time.Now()) {
-			return errors.New("token expired")
+			return ErrTokenExpired
 		}
 	}
 
 	nbf, err := t.GetNotBefore()
 	if err == nil {
 		if nbf.After(time.Now()) {
-			return errors.New("token should not be accepted for processing yet")
+			return ErrTokenShouldNotBeAccepted
 		}
 	}
 
@@ -334,7 +351,7 @@ func Sign(t Token, key []byte) (string, error) {
 
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
 	default:
-		return "", errors.New("unsupported algorithm")
+		return "", ErrUnsupportedAlgorithm
 	}
 }
 
@@ -370,7 +387,7 @@ func Verify(t string, key []byte) error {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
-			return errors.New("invalid token signature")
+			return ErrInvalidTokenSignature
 		}
 
 		return nil
@@ -382,7 +399,7 @@ func Verify(t string, key []byte) error {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
-			return errors.New("invalid token signature")
+			return ErrInvalidTokenSignature
 		}
 
 		return nil
@@ -394,7 +411,7 @@ func Verify(t string, key []byte) error {
 			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
-			return errors.New("invalid token signature")
+			return ErrInvalidTokenSignature
 		}
 
 		return nil
@@ -465,7 +482,7 @@ func Verify(t string, key []byte) error {
 
 		return nil
 	default:
-		return errors.New("unsupported algorithm")
+		return ErrUnsupportedAlgorithm
 	}
 }
 
