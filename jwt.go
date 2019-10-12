@@ -44,6 +44,7 @@ type Token interface {
 	GetJWTID() (string, error)
 	Set(key string, value interface{})
 	Get(key string) (interface{}, error)
+	GetPayload() Payload
 	Validate() error
 }
 
