@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// Header is json web token header
+// Header is json web token header.
 type Header struct {
 	Algorithm Algorithm `json:"alg"`
 	Type      string    `json:"typ"`
@@ -169,12 +169,12 @@ func (t *token) GetExpirationTime() (time.Time, error) {
 		return time.Time{}, ErrClaimNotFound
 	}
 
-	exp, ok := value.(int64)
+	exp, ok := value.(float64)
 	if !ok {
 		return time.Time{}, ErrInvalidClaimType
 	}
 
-	return time.Unix(exp, 0), nil
+	return time.Unix(int64(exp), 0), nil
 }
 
 func (t *token) SetNotBefore(nbf time.Time) {
@@ -187,12 +187,12 @@ func (t *token) GetNotBefore() (time.Time, error) {
 		return time.Time{}, ErrClaimNotFound
 	}
 
-	nbf, ok := value.(int64)
+	nbf, ok := value.(float64)
 	if !ok {
 		return time.Time{}, ErrInvalidClaimType
 	}
 
-	return time.Unix(nbf, 0), nil
+	return time.Unix(int64(nbf), 0), nil
 }
 
 func (t *token) SetIssuedAt(iat time.Time) {
@@ -205,12 +205,12 @@ func (t *token) GetIssuedAt() (time.Time, error) {
 		return time.Time{}, ErrClaimNotFound
 	}
 
-	iat, ok := value.(int64)
+	iat, ok := value.(float64)
 	if !ok {
 		return time.Time{}, ErrInvalidClaimType
 	}
 
-	return time.Unix(iat, 0), nil
+	return time.Unix(int64(iat), 0), nil
 }
 
 func (t *token) SetJWTID(jti string) {
@@ -240,6 +240,7 @@ func (t *token) Get(key string) (interface{}, error) {
 	if !ok {
 		return nil, ErrClaimNotFound
 	}
+
 	return value, nil
 }
 
@@ -261,7 +262,7 @@ func (t *token) Validate() error {
 	return nil
 }
 
-// New returns new json web token
+// New returns new json web token.
 func New(alg Algorithm) Token {
 	return &token{
 		header: Header{
@@ -272,17 +273,18 @@ func New(alg Algorithm) Token {
 	}
 }
 
-// Sign the token with secret key
+// Sign the token with secret key.
 func Sign(t Token, key []byte) (string, error) {
 	h := t.(interface{ GetHeader() Header }).GetHeader()
+
 	header, err := json.Marshal(h)
 	if err != nil {
-		return "", fmt.Errorf("error on marshal header: %s", err.Error())
+		return "", fmt.Errorf("error on marshal header: %w", err)
 	}
 
 	payload, err := json.Marshal(t.(interface{ GetPayload() Payload }).GetPayload())
 	if err != nil {
-		return "", fmt.Errorf("error on marshal payload: %s", err.Error())
+		return "", fmt.Errorf("error on marshal payload: %w", err)
 	}
 
 	unsignedToken := fmt.Sprintf("%s.%s", base64.RawURLEncoding.EncodeToString(header), base64.RawURLEncoding.EncodeToString(payload))
@@ -307,13 +309,13 @@ func Sign(t Token, key []byte) (string, error) {
 		}
 		private, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
-			return "", fmt.Errorf("error on parse private key: %s", err)
+			return "", fmt.Errorf("error on parse private key: %w", err)
 		}
 
 		hashed := sha256.Sum256([]byte(unsignedToken))
 		b, err := rsa.SignPKCS1v15(rand.Reader, private, crypto.SHA256, hashed[:])
 		if err != nil {
-			return "", fmt.Errorf("error on sign token: %s", err)
+			return "", fmt.Errorf("error on sign token: %w", err)
 		}
 
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
@@ -324,13 +326,13 @@ func Sign(t Token, key []byte) (string, error) {
 		}
 		private, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
-			return "", fmt.Errorf("error on parse private key: %s", err)
+			return "", fmt.Errorf("error on parse private key: %w", err)
 		}
 
 		hashed := sha512.Sum384([]byte(unsignedToken))
 		b, err := rsa.SignPKCS1v15(rand.Reader, private, crypto.SHA384, hashed[:])
 		if err != nil {
-			return "", fmt.Errorf("error on sign token: %s", err)
+			return "", fmt.Errorf("error on sign token: %w", err)
 		}
 
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
@@ -341,13 +343,13 @@ func Sign(t Token, key []byte) (string, error) {
 		}
 		private, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
-			return "", fmt.Errorf("error on parse private key: %s", err)
+			return "", fmt.Errorf("error on parse private key: %w", err)
 		}
 
 		hashed := sha512.Sum512([]byte(unsignedToken))
 		b, err := rsa.SignPKCS1v15(rand.Reader, private, crypto.SHA512, hashed[:])
 		if err != nil {
-			return "", fmt.Errorf("error on sign token: %s", err)
+			return "", fmt.Errorf("error on sign token: %w", err)
 		}
 
 		return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(b)), nil
@@ -367,12 +369,12 @@ func Verify(t string, key []byte) error {
 
 	header, err := base64.RawURLEncoding.DecodeString(arr[0])
 	if err != nil {
-		return fmt.Errorf("invalid token header encoding: %s", err.Error())
+		return fmt.Errorf("invalid token header encoding: %w", err)
 	}
 
 	err = json.Unmarshal(header, &tok.header)
 	if err != nil {
-		return fmt.Errorf("invalid token header: %s", err.Error())
+		return fmt.Errorf("invalid token header: %w", err)
 	}
 
 	if typ := tok.header.Type; typ != "JWT" {
@@ -385,7 +387,7 @@ func Verify(t string, key []byte) error {
 		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
-			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+			return fmt.Errorf("invalid token signature encoding: %w", err)
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
 			return ErrInvalidTokenSignature
@@ -397,7 +399,7 @@ func Verify(t string, key []byte) error {
 		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
-			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+			return fmt.Errorf("invalid token signature encoding: %w", err)
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
 			return ErrInvalidTokenSignature
@@ -409,7 +411,7 @@ func Verify(t string, key []byte) error {
 		_, _ = mac.Write([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
-			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+			return fmt.Errorf("invalid token signature encoding: %w", err)
 		}
 		if !hmac.Equal(mac.Sum(nil), sig) {
 			return ErrInvalidTokenSignature
@@ -423,18 +425,18 @@ func Verify(t string, key []byte) error {
 		}
 		public, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
-			return fmt.Errorf("error on parse public key: %s", err)
+			return fmt.Errorf("error on parse public key: %w", err)
 		}
 
 		hashed := sha256.Sum256([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
-			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+			return fmt.Errorf("invalid token signature encoding: %w", err)
 		}
 		err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA256, hashed[:], sig)
 		if err != nil {
-			return fmt.Errorf("invalid token signature: %s", err)
+			return fmt.Errorf("invalid token signature: %w", err)
 		}
 
 		return nil
@@ -445,18 +447,18 @@ func Verify(t string, key []byte) error {
 		}
 		public, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
-			return fmt.Errorf("error on parse public key: %s", err)
+			return fmt.Errorf("error on parse public key: %w", err)
 		}
 
 		hashed := sha512.Sum384([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
-			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+			return fmt.Errorf("invalid token signature encoding: %w", err)
 		}
 		err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA384, hashed[:], sig)
 		if err != nil {
-			return fmt.Errorf("invalid token signature: %s", err)
+			return fmt.Errorf("invalid token signature: %w", err)
 		}
 
 		return nil
@@ -467,18 +469,18 @@ func Verify(t string, key []byte) error {
 		}
 		public, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
-			return fmt.Errorf("error on parse public key: %s", err)
+			return fmt.Errorf("error on parse public key: %w", err)
 		}
 
 		hashed := sha512.Sum512([]byte(fmt.Sprintf("%s.%s", arr[0], arr[1])))
 
 		sig, err := base64.RawURLEncoding.DecodeString(arr[2])
 		if err != nil {
-			return fmt.Errorf("invalid token signature encoding: %s", err.Error())
+			return fmt.Errorf("invalid token signature encoding: %w", err)
 		}
 		err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA512, hashed[:], sig)
 		if err != nil {
-			return fmt.Errorf("invalid token signature: %s", err)
+			return fmt.Errorf("invalid token signature: %w", err)
 		}
 
 		return nil
@@ -498,22 +500,22 @@ func Parse(t string) (Token, error) {
 
 	header, err := base64.RawURLEncoding.DecodeString(arr[0])
 	if err != nil {
-		return nil, fmt.Errorf("invalid token header encoding: %s", err.Error())
+		return nil, fmt.Errorf("invalid token header encoding: %w", err)
 	}
 
 	err = json.Unmarshal(header, &tok.header)
 	if err != nil {
-		return nil, fmt.Errorf("invalid token header: %s", err.Error())
+		return nil, fmt.Errorf("invalid token header: %w", err)
 	}
 
 	payload, err := base64.RawURLEncoding.DecodeString(arr[1])
 	if err != nil {
-		return nil, fmt.Errorf("invalid token payload encoding: %s", err.Error())
+		return nil, fmt.Errorf("invalid token payload encoding: %w", err)
 	}
 
 	err = json.Unmarshal(payload, &tok.payload)
 	if err != nil {
-		return nil, fmt.Errorf("invalid token payload: %s", err.Error())
+		return nil, fmt.Errorf("invalid token payload: %w", err)
 	}
 
 	return &tok, nil

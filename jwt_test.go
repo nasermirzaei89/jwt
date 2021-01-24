@@ -1,11 +1,13 @@
 package jwt_test
 
 import (
-	"github.com/nasermirzaei89/jwt"
 	"testing"
+
+	"github.com/nasermirzaei89/jwt"
 )
 
 var secret = []byte("secret_key")
+
 var private = []byte(`-----BEGIN RSA PRIVATE KEY-----
 MIIEogIBAAKCAQEAxuqRXco9YP2YpBhWR0KtcsJg/2e1hFUQG0AXb+zIXlcvi5+v
 2ZVVGG4gcvHCiA+8CSn+qnqM+guaws6/z3WaPQOF5jfrgGdz9RQuiTAnBp0rlDCO
@@ -49,6 +51,7 @@ zQIDAQAB
 func TestSignHS256(t *testing.T) {
 	excepted := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
 	token := jwt.New(jwt.HS256)
+
 	tokenStr, err := jwt.Sign(token, secret)
 	if err != nil {
 		t.Error(err)
@@ -62,6 +65,7 @@ func TestSignHS256(t *testing.T) {
 func TestSignHS384(t *testing.T) {
 	excepted := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.Tesq3qahWM2tdkVGIMTRB0uoCV93sZHHZdwcVfwatm-dA6xXVzItk4Y1tkBbP0rT"
 	token := jwt.New(jwt.HS384)
+
 	tokenStr, err := jwt.Sign(token, secret)
 	if err != nil {
 		t.Error(err)
@@ -75,6 +79,7 @@ func TestSignHS384(t *testing.T) {
 func TestSignHS512(t *testing.T) {
 	excepted := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.A86BXmxG5KZJeJlLLQGQiLFTeVIFWtaavXtgWRFZjhO-XvhLzSkWjVQ42ijGzDrRfz3LClikgNNz_d3tA7NOdw"
 	token := jwt.New(jwt.HS512)
+
 	tokenStr, err := jwt.Sign(token, secret)
 	if err != nil {
 		t.Error(err)
@@ -88,6 +93,7 @@ func TestSignHS512(t *testing.T) {
 func TestSignRS256(t *testing.T) {
 	excepted := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.B1Q-D-h1NW2DbAippP-l6H9YHX22HnZZl15PHO7CC6K0ZcbnOr0IjnyOZFeLUB-02z3ausdsWn7FlZj_juqRfeIlpP7ysJwp0kPGpGJqXE-YlrOrR_KRcs7EjIb53ICV76WPP149h_qu57hIYAlJwSZgy77wkXKoq73psXI0ZAl_0YC7kgGyz_aE7Wwk3-BLcEqhKyC6yG4RoBzqHJgZXEShYUkCWjdwa5O3ogQ0-dMtjp3jXG-l42RaOJqqNYNegBstQWL874hfYQcVxuWdTeBtqTqXsGp2sH60NEd5h6Z-3Ef0nw0bbCTK0ustCHZn5RN4HHvCiazriqK4CdkPrw"
 	token := jwt.New(jwt.RS256)
+
 	tokenStr, err := jwt.Sign(token, private)
 	if err != nil {
 		t.Error(err)
@@ -101,6 +107,7 @@ func TestSignRS256(t *testing.T) {
 func TestSignRS384(t *testing.T) {
 	excepted := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.VUugIiYP9KU8jPfYpWtLm3l2iYnM6z09pEPvlkYd4gs72AzBn-vkklhPSn31RO2fH9Xnu6cfL975Zd_kEZKCC0zKZlkmT1GC2b_UKK6kR_iwMdLMIcdtiDKjZK6svPV9AcPGxBZWQh98gznBwNphfkCsZzq0WriSkHbiRA7N7WbwcZt4SPjG76uM4TWBHwBf62AJ9rHFrtt05J0sSzFUqRZe32f_NehvmpY9wLQ4wA4pmzbYe9pR0iY0D-TZ0G5uFiwG10mh8EARi5VCpNgVsziX3B4mAlTj5369DbAeEGw9f_iNqDPhWbshoCpiv94Z4V3bgWT0c7pYP2Sfam6zWQ"
 	token := jwt.New(jwt.RS384)
+
 	tokenStr, err := jwt.Sign(token, private)
 	if err != nil {
 		t.Error(err)
@@ -114,6 +121,7 @@ func TestSignRS384(t *testing.T) {
 func TestSignRS512(t *testing.T) {
 	excepted := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.TAc6Fs7zC82s2CwCp8Y7flotPYpnrn0PzZImM3QH9uMfw-I8xySlVosKe9VyQ6CPuO8BWmkW5t9GD4QoN8glKW_bTTBQGM0eLTftSQoUVn8djQkWzCPjol3RWbZvBs6k9RphUF3qibzL9DOYCn8Vsmrwj9RhzDAs1dpeBzEqC_mxtxWDW8rnetp3Kwj2cDZjRPUi9IPFL6ccbvfC9CxsXhrMKccUzb4Yw9YukvuO93QNN_pPCazQFY2zCL2yvBvUpPbHnOdGCX41z_TZY1P7sea5SsGcGv5YOCxKdVTPF3WRhaUhOkY7-AAqMuJZbWxkhkE1OjBwgWj-L28nTKOwVw"
 	token := jwt.New(jwt.RS512)
+
 	tokenStr, err := jwt.Sign(token, private)
 	if err != nil {
 		t.Error(err)
@@ -126,6 +134,7 @@ func TestSignRS512(t *testing.T) {
 
 func TestVerifyInvalidToken(t *testing.T) {
 	tokenStr := "invalid"
+
 	err := jwt.Verify(tokenStr, secret)
 	if err == nil {
 		t.Error("excepted error but got nil")
@@ -140,6 +149,7 @@ func TestVerifyInvalidToken(t *testing.T) {
 
 func TestVerifyHS256(t *testing.T) {
 	tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
+
 	err := jwt.Verify(tokenStr, secret)
 	if err != nil {
 		t.Error(err)
@@ -148,6 +158,7 @@ func TestVerifyHS256(t *testing.T) {
 
 func TestVerifyHS384(t *testing.T) {
 	tokenStr := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.Tesq3qahWM2tdkVGIMTRB0uoCV93sZHHZdwcVfwatm-dA6xXVzItk4Y1tkBbP0rT"
+
 	err := jwt.Verify(tokenStr, secret)
 	if err != nil {
 		t.Error(err)
@@ -156,6 +167,7 @@ func TestVerifyHS384(t *testing.T) {
 
 func TestVerifyHS512(t *testing.T) {
 	tokenStr := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.A86BXmxG5KZJeJlLLQGQiLFTeVIFWtaavXtgWRFZjhO-XvhLzSkWjVQ42ijGzDrRfz3LClikgNNz_d3tA7NOdw"
+
 	err := jwt.Verify(tokenStr, secret)
 	if err != nil {
 		t.Error(err)
@@ -164,6 +176,7 @@ func TestVerifyHS512(t *testing.T) {
 
 func TestVerifyRS256(t *testing.T) {
 	tokenStr := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.B1Q-D-h1NW2DbAippP-l6H9YHX22HnZZl15PHO7CC6K0ZcbnOr0IjnyOZFeLUB-02z3ausdsWn7FlZj_juqRfeIlpP7ysJwp0kPGpGJqXE-YlrOrR_KRcs7EjIb53ICV76WPP149h_qu57hIYAlJwSZgy77wkXKoq73psXI0ZAl_0YC7kgGyz_aE7Wwk3-BLcEqhKyC6yG4RoBzqHJgZXEShYUkCWjdwa5O3ogQ0-dMtjp3jXG-l42RaOJqqNYNegBstQWL874hfYQcVxuWdTeBtqTqXsGp2sH60NEd5h6Z-3Ef0nw0bbCTK0ustCHZn5RN4HHvCiazriqK4CdkPrw"
+
 	err := jwt.Verify(tokenStr, public)
 	if err != nil {
 		t.Error(err)
@@ -172,6 +185,7 @@ func TestVerifyRS256(t *testing.T) {
 
 func TestVerifyRS384(t *testing.T) {
 	tokenStr := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.VUugIiYP9KU8jPfYpWtLm3l2iYnM6z09pEPvlkYd4gs72AzBn-vkklhPSn31RO2fH9Xnu6cfL975Zd_kEZKCC0zKZlkmT1GC2b_UKK6kR_iwMdLMIcdtiDKjZK6svPV9AcPGxBZWQh98gznBwNphfkCsZzq0WriSkHbiRA7N7WbwcZt4SPjG76uM4TWBHwBf62AJ9rHFrtt05J0sSzFUqRZe32f_NehvmpY9wLQ4wA4pmzbYe9pR0iY0D-TZ0G5uFiwG10mh8EARi5VCpNgVsziX3B4mAlTj5369DbAeEGw9f_iNqDPhWbshoCpiv94Z4V3bgWT0c7pYP2Sfam6zWQ"
+
 	err := jwt.Verify(tokenStr, public)
 	if err != nil {
 		t.Error(err)
@@ -180,6 +194,7 @@ func TestVerifyRS384(t *testing.T) {
 
 func TestVerifyRS512(t *testing.T) {
 	tokenStr := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.TAc6Fs7zC82s2CwCp8Y7flotPYpnrn0PzZImM3QH9uMfw-I8xySlVosKe9VyQ6CPuO8BWmkW5t9GD4QoN8glKW_bTTBQGM0eLTftSQoUVn8djQkWzCPjol3RWbZvBs6k9RphUF3qibzL9DOYCn8Vsmrwj9RhzDAs1dpeBzEqC_mxtxWDW8rnetp3Kwj2cDZjRPUi9IPFL6ccbvfC9CxsXhrMKccUzb4Yw9YukvuO93QNN_pPCazQFY2zCL2yvBvUpPbHnOdGCX41z_TZY1P7sea5SsGcGv5YOCxKdVTPF3WRhaUhOkY7-AAqMuJZbWxkhkE1OjBwgWj-L28nTKOwVw"
+
 	err := jwt.Verify(tokenStr, public)
 	if err != nil {
 		t.Error(err)
@@ -188,6 +203,7 @@ func TestVerifyRS512(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
+
 	token, err := jwt.Parse(tokenStr)
 	if err != nil {
 		t.Error(err)
