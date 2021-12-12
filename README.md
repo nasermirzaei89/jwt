@@ -2,13 +2,11 @@
 
 JSON Web Token library
 
-![Build Status](https://github.com/nasermirzaei89/jwt/actions/workflows/build/badge.svg)
+![Build Status](https://github.com/nasermirzaei89/jwt/actions/workflows/build.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nasermirzaei89/jwt)](https://goreportcard.com/report/github.com/nasermirzaei89/jwt)
-[![GolangCI](https://golangci.com/badges/github.com/nasermirzaei89/jwt.svg)](https://golangci.com/r/github.com/nasermirzaei89/jwt)
 [![Codecov](https://codecov.io/gh/nasermirzaei89/jwt/branch/master/graph/badge.svg)](https://codecov.io/gh/nasermirzaei89/jwt)
-[![GoDoc](https://godoc.org/github.com/nasermirzaei89/jwt?status.svg)](https://godoc.org/github.com/nasermirzaei89/jwt)
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://raw.githubusercontent.com/nasermirzaei89/jwt/master/LICENSE)
-
+[![Go Reference](https://pkg.go.dev/badge/github.com/nasermirzaei89/jwt.svg)](https://pkg.go.dev/github.com/nasermirzaei89/jwt)
+[![License](https://img.shields.io/github/license/nasermirzaei89/jwt)](https://raw.githubusercontent.com/nasermirzaei89/jwt/master/LICENSE)
 ## Usage
 
 ### Sign
@@ -40,7 +38,6 @@ func main() {
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nasermirzaei89/jwt"
