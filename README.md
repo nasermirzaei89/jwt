@@ -39,7 +39,7 @@ import (
 
 func main() {
 	token := jwt.New(jwt.HS256)
-	tokenStr, err := jwt.Sign(*token, []byte("secret_key"))
+	tokenStr, err := jwt.Sign(token, []byte("secret_key"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -61,7 +61,7 @@ import (
 
 func main() {
 	tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
-	err := jwt.Verify(tokenStr, []byte("secret_key"))
+    err := jwt.Verify(tokenStr, []byte("secret_key"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -76,16 +76,16 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
+    "time"
 
 	"github.com/nasermirzaei89/jwt"
 )
 
 func main() {
 	token := jwt.New(jwt.HS256)
-	token.SetIssuer("https://yourdomain.tld")
-	token.SetExpirationTime(time.Now())
-	tokenStr, err := jwt.Sign(*token, []byte("secret_key"))
+    token.SetIssuer("https://yourdomain.tld")
+    token.SetExpiresAt(time.Now())
+	tokenStr, err := jwt.Sign(token, []byte("secret_key"))
 	if err != nil {
 		log.Fatalln(err)
 	}

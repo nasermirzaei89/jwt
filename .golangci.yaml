@@ -6,11 +6,9 @@ run:
 linters:
   enable-all: true
   disable:
-    - interfacer # deprecated
-    - maligned # deprecated
+    - nolintlint
     - scopelint # deprecated
     - golint # deprecated
-
-linters-settings:
-  cyclop:
-    max-complexity: 12
+    - maligned # deprecated
+    - interfacer # deprecated
+    - cyclop

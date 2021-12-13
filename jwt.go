@@ -26,25 +26,6 @@ type Header struct {
 // Payload is json web token payload.
 type Payload map[string]interface{}
 
-// Algorithm type.
-type Algorithm string
-
-// Algorithms.
-const (
-	HS256 Algorithm = "HS256"
-	HS384 Algorithm = "HS384"
-	HS512 Algorithm = "HS512"
-	RS256 Algorithm = "RS256"
-	RS384 Algorithm = "RS384"
-	RS512 Algorithm = "RS512"
-	// ES256 Algorithm = "ES256"
-	// ES384 Algorithm = "ES384"
-	// ES512 Algorithm = "ES512"
-	// PS256 Algorithm = "PS256"
-	// PS384 Algorithm = "PS384"
-	// PS512 Algorithm = "PS512".
-)
-
 // Registered Claim Names.
 const (
 	ClaimIssuer         = "iss"
@@ -275,36 +256,7 @@ func Sign(token Token, key []byte) (string, error) {
 	encodedPayload := base64.RawURLEncoding.EncodeToString(payloadBytes)
 	unsignedToken := fmt.Sprintf("%s.%s", encodedHeader, encodedPayload)
 
-	switch header.Algorithm {
-	case HS256:
-		return signHS256(key, unsignedToken)
-	case HS384:
-		return signHS384(key, unsignedToken)
-	case HS512:
-		return signHS512(key, unsignedToken)
-	case RS256:
-		return signRS256(key, unsignedToken)
-	case RS384:
-		return signRS384(key, unsignedToken)
-	case RS512:
-		return signRS512(key, unsignedToken)
-	default:
-		return "", ErrUnsupportedAlgorithm
-	}
-}
-
-func signHS256(key []byte, unsignedToken string) (string, error) {
-	mac := hmac.New(sha256.New, key)
-	_, _ = mac.Write([]byte(unsignedToken))
-
-	return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
-}
-
-func signHS384(key []byte, unsignedToken string) (string, error) {
-	mac := hmac.New(sha512.New384, key)
-	_, _ = mac.Write([]byte(unsignedToken))
-
-	return fmt.Sprintf("%s.%s", unsignedToken, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
+	return header.Algorithm.Sign(key, unsignedToken)
 }
 
 func signHS512(key []byte, unsignedToken string) (string, error) {
@@ -402,38 +354,7 @@ func Verify(t string, key []byte) error {
 
 	unsignedToken := fmt.Sprintf("%s.%s", arr[0], arr[1])
 
-	switch tok.header.Algorithm {
-	case HS256:
-		return verifyHS256(key, unsignedToken, arr[2])
-	case HS384:
-		return verifyHS384(key, unsignedToken, arr[2])
-	case HS512:
-		return verifyHS512(key, unsignedToken, arr[2])
-	case RS256:
-		return verifyRS256(key, unsignedToken, arr[2])
-	case RS384:
-		return verifyRS384(key, unsignedToken, arr[2])
-	case RS512:
-		return verifyRS512(key, unsignedToken, arr[2])
-	default:
-		return ErrUnsupportedAlgorithm
-	}
-}
-
-func verifyHS256(key []byte, unsignedToken, signature string) error {
-	mac := hmac.New(sha256.New, key)
-	_, _ = mac.Write([]byte(unsignedToken))
-
-	sig, err := base64.RawURLEncoding.DecodeString(signature)
-	if err != nil {
-		return fmt.Errorf("invalid token signature encoding: %w", err)
-	}
-
-	if !hmac.Equal(mac.Sum(nil), sig) {
-		return ErrInvalidTokenSignature
-	}
-
-	return nil
+	return tok.header.Algorithm.Verify(key, unsignedToken, arr[2])
 }
 
 func verifyHS384(key []byte, unsignedToken, signature string) error {
