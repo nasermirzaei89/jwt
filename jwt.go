@@ -277,7 +277,11 @@ func Sign(token Token, key []byte) (string, error) {
 	encodedPayload := base64.RawURLEncoding.EncodeToString(payloadBytes)
 	unsignedToken := fmt.Sprintf("%s.%s", encodedHeader, encodedPayload)
 
-	switch header.Algorithm {
+	return signByAlgorithm(header.Algorithm, key, unsignedToken)
+}
+
+func signByAlgorithm(alg Algorithm, key []byte, unsignedToken string) (string, error) {
+	switch alg {
 	case HS256:
 		return signHS256(key, unsignedToken)
 	case HS384:
@@ -405,19 +409,23 @@ func Verify(t string, key []byte) error {
 
 	unsignedToken := fmt.Sprintf("%s.%s", arr[0], arr[1])
 
-	switch tok.header.Algorithm {
+	return verifyByAlgorithm(tok.header.Algorithm, key, unsignedToken, arr[2])
+}
+
+func verifyByAlgorithm(alg Algorithm, key []byte, unsignedToken, signature string) error {
+	switch alg {
 	case HS256:
-		return verifyHS256(key, unsignedToken, arr[2])
+		return verifyHS256(key, unsignedToken, signature)
 	case HS384:
-		return verifyHS384(key, unsignedToken, arr[2])
+		return verifyHS384(key, unsignedToken, signature)
 	case HS512:
-		return verifyHS512(key, unsignedToken, arr[2])
+		return verifyHS512(key, unsignedToken, signature)
 	case RS256:
-		return verifyRS256(key, unsignedToken, arr[2])
+		return verifyRS256(key, unsignedToken, signature)
 	case RS384:
-		return verifyRS384(key, unsignedToken, arr[2])
+		return verifyRS384(key, unsignedToken, signature)
 	case RS512:
-		return verifyRS512(key, unsignedToken, arr[2])
+		return verifyRS512(key, unsignedToken, signature)
 	default:
 		return ErrUnsupportedAlgorithm
 	}
