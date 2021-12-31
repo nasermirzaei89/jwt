@@ -494,12 +494,12 @@ func verifyRS256(key []byte, unsignedToken, signature string) error {
 
 	sig, err := base64.RawURLEncoding.DecodeString(signature)
 	if err != nil {
-		return fmt.Errorf("invalid token signature encoding: %w", err)
+		return ErrInvalidTokenSignature
 	}
 
 	err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA256, hashed[:], sig)
 	if err != nil {
-		return fmt.Errorf("invalid token signature: %w", err)
+		return ErrInvalidTokenSignature
 	}
 
 	return nil
@@ -520,12 +520,12 @@ func verifyRS384(key []byte, unsignedToken, signature string) error {
 
 	sig, err := base64.RawURLEncoding.DecodeString(signature)
 	if err != nil {
-		return fmt.Errorf("invalid token signature encoding: %w", err)
+		return ErrInvalidTokenSignature
 	}
 
 	err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA384, hashed[:], sig)
 	if err != nil {
-		return fmt.Errorf("invalid token signature: %w", err)
+		return ErrInvalidTokenSignature
 	}
 
 	return nil
@@ -546,12 +546,12 @@ func verifyRS512(key []byte, unsignedToken, signature string) error {
 
 	sig, err := base64.RawURLEncoding.DecodeString(signature)
 	if err != nil {
-		return fmt.Errorf("invalid token signature encoding: %w", err)
+		return ErrInvalidTokenSignature
 	}
 
 	err = rsa.VerifyPKCS1v15(public.(*rsa.PublicKey), crypto.SHA512, hashed[:], sig)
 	if err != nil {
-		return fmt.Errorf("invalid token signature: %w", err)
+		return ErrInvalidTokenSignature
 	}
 
 	return nil

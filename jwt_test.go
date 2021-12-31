@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/nasermirzaei89/jwt"
@@ -48,197 +49,437 @@ zQIDAQAB
 -----END PUBLIC KEY-----
 `)
 
-func TestSignHS256(t *testing.T) {
+func TestSign(t *testing.T) {
 	t.Parallel()
 
-	excepted := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
-	token := jwt.New(jwt.HS256)
+	t.Run("Sign invalid algorithm", func(t *testing.T) {
+		t.Parallel()
 
-	tokenStr, err := jwt.Sign(*token, secret)
-	if err != nil {
-		t.Error(err)
-	}
+		excepted := ""
 
-	if tokenStr != excepted {
-		t.Errorf("excepted: '%s', got: '%s'", excepted, tokenStr)
-	}
+		token := jwt.New("foo")
+
+		tokenStr, err := jwt.Sign(*token, secret)
+		if err == nil {
+			t.Error("excepted error but got nil")
+		}
+
+		if !errors.Is(err, jwt.ErrUnsupportedAlgorithm) {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign HS256", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
+		token := jwt.New(jwt.HS256)
+
+		tokenStr, err := jwt.Sign(*token, secret)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign HS384", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.Tesq3qahWM2tdkVGIMTRB0uoCV93sZHHZdwcVfwatm-dA6xXVzItk4Y1tkBbP0rT"
+		token := jwt.New(jwt.HS384)
+
+		tokenStr, err := jwt.Sign(*token, secret)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign HS512", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.A86BXmxG5KZJeJlLLQGQiLFTeVIFWtaavXtgWRFZjhO-XvhLzSkWjVQ42ijGzDrRfz3LClikgNNz_d3tA7NOdw"
+		token := jwt.New(jwt.HS512)
+
+		tokenStr, err := jwt.Sign(*token, secret)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign RS256", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.B1Q-D-h1NW2DbAippP-l6H9YHX22HnZZl15PHO7CC6K0ZcbnOr0IjnyOZFeLUB-02z3ausdsWn7FlZj_juqRfeIlpP7ysJwp0kPGpGJqXE-YlrOrR_KRcs7EjIb53ICV76WPP149h_qu57hIYAlJwSZgy77wkXKoq73psXI0ZAl_0YC7kgGyz_aE7Wwk3-BLcEqhKyC6yG4RoBzqHJgZXEShYUkCWjdwa5O3ogQ0-dMtjp3jXG-l42RaOJqqNYNegBstQWL874hfYQcVxuWdTeBtqTqXsGp2sH60NEd5h6Z-3Ef0nw0bbCTK0ustCHZn5RN4HHvCiazriqK4CdkPrw"
+
+		token := jwt.New(jwt.RS256)
+
+		tokenStr, err := jwt.Sign(*token, private)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign RS256 with invalid key", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := ""
+
+		token := jwt.New(jwt.RS256)
+
+		tokenStr, err := jwt.Sign(*token, []byte(""))
+		if err == nil {
+			t.Error("excepted error but got nil")
+
+			return
+		}
+
+		if !errors.Is(err, jwt.ErrInvalidPem) {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign RS384", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.VUugIiYP9KU8jPfYpWtLm3l2iYnM6z09pEPvlkYd4gs72AzBn-vkklhPSn31RO2fH9Xnu6cfL975Zd_kEZKCC0zKZlkmT1GC2b_UKK6kR_iwMdLMIcdtiDKjZK6svPV9AcPGxBZWQh98gznBwNphfkCsZzq0WriSkHbiRA7N7WbwcZt4SPjG76uM4TWBHwBf62AJ9rHFrtt05J0sSzFUqRZe32f_NehvmpY9wLQ4wA4pmzbYe9pR0iY0D-TZ0G5uFiwG10mh8EARi5VCpNgVsziX3B4mAlTj5369DbAeEGw9f_iNqDPhWbshoCpiv94Z4V3bgWT0c7pYP2Sfam6zWQ"
+		token := jwt.New(jwt.RS384)
+
+		tokenStr, err := jwt.Sign(*token, private)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign RS384 with invalid key", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := ""
+
+		token := jwt.New(jwt.RS384)
+
+		tokenStr, err := jwt.Sign(*token, []byte(""))
+		if err == nil {
+			t.Error("excepted error but got nil")
+
+			return
+		}
+
+		if !errors.Is(err, jwt.ErrInvalidPem) {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign RS512", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.TAc6Fs7zC82s2CwCp8Y7flotPYpnrn0PzZImM3QH9uMfw-I8xySlVosKe9VyQ6CPuO8BWmkW5t9GD4QoN8glKW_bTTBQGM0eLTftSQoUVn8djQkWzCPjol3RWbZvBs6k9RphUF3qibzL9DOYCn8Vsmrwj9RhzDAs1dpeBzEqC_mxtxWDW8rnetp3Kwj2cDZjRPUi9IPFL6ccbvfC9CxsXhrMKccUzb4Yw9YukvuO93QNN_pPCazQFY2zCL2yvBvUpPbHnOdGCX41z_TZY1P7sea5SsGcGv5YOCxKdVTPF3WRhaUhOkY7-AAqMuJZbWxkhkE1OjBwgWj-L28nTKOwVw"
+		token := jwt.New(jwt.RS512)
+
+		tokenStr, err := jwt.Sign(*token, private)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
+
+	t.Run("Sign RS512 with invalid key", func(t *testing.T) {
+		t.Parallel()
+
+		excepted := ""
+
+		token := jwt.New(jwt.RS512)
+
+		tokenStr, err := jwt.Sign(*token, []byte(""))
+		if err == nil {
+			t.Error("excepted error but got nil")
+
+			return
+		}
+
+		if !errors.Is(err, jwt.ErrInvalidPem) {
+			t.Error(err)
+		}
+
+		if tokenStr != excepted {
+			t.Errorf("excepted: %q, got: %q", excepted, tokenStr)
+		}
+	})
 }
 
-func TestSignHS384(t *testing.T) {
+func TestVerify(t *testing.T) {
 	t.Parallel()
 
-	excepted := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.Tesq3qahWM2tdkVGIMTRB0uoCV93sZHHZdwcVfwatm-dA6xXVzItk4Y1tkBbP0rT"
-	token := jwt.New(jwt.HS384)
+	t.Run("Verify invalid token", func(t *testing.T) {
+		t.Parallel()
 
-	tokenStr, err := jwt.Sign(*token, secret)
-	if err != nil {
-		t.Error(err)
-	}
+		tokenStr := "invalid"
 
-	if tokenStr != excepted {
-		t.Errorf("excepted: '%s', got: '%s'", excepted, tokenStr)
-	}
-}
+		err := jwt.Verify(tokenStr, secret)
+		if err == nil {
+			t.Error("excepted error but got nil")
 
-func TestSignHS512(t *testing.T) {
-	t.Parallel()
+			return
+		}
 
-	excepted := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.A86BXmxG5KZJeJlLLQGQiLFTeVIFWtaavXtgWRFZjhO-XvhLzSkWjVQ42ijGzDrRfz3LClikgNNz_d3tA7NOdw"
-	token := jwt.New(jwt.HS512)
+		if !errors.Is(err, jwt.ErrInvalidToken) {
+			t.Error(err)
+		}
+	})
 
-	tokenStr, err := jwt.Sign(*token, secret)
-	if err != nil {
-		t.Error(err)
-	}
+	t.Run("Verify invalid type", func(t *testing.T) {
+		t.Parallel()
 
-	if tokenStr != excepted {
-		t.Errorf("excepted: '%s', got: '%s'", excepted, tokenStr)
-	}
-}
+		tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXUyJ9.e30.DYbUWU7uDaI6uT9JmftppmfaWMpSeynd5dqmW3qBOac"
 
-func TestSignRS256(t *testing.T) {
-	t.Parallel()
+		err := jwt.Verify(tokenStr, secret)
+		if err == nil {
+			t.Error("excepted error but got nil")
 
-	excepted := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.B1Q-D-h1NW2DbAippP-l6H9YHX22HnZZl15PHO7CC6K0ZcbnOr0IjnyOZFeLUB-02z3ausdsWn7FlZj_juqRfeIlpP7ysJwp0kPGpGJqXE-YlrOrR_KRcs7EjIb53ICV76WPP149h_qu57hIYAlJwSZgy77wkXKoq73psXI0ZAl_0YC7kgGyz_aE7Wwk3-BLcEqhKyC6yG4RoBzqHJgZXEShYUkCWjdwa5O3ogQ0-dMtjp3jXG-l42RaOJqqNYNegBstQWL874hfYQcVxuWdTeBtqTqXsGp2sH60NEd5h6Z-3Ef0nw0bbCTK0ustCHZn5RN4HHvCiazriqK4CdkPrw"
-	token := jwt.New(jwt.RS256)
+			return
+		}
 
-	tokenStr, err := jwt.Sign(*token, private)
-	if err != nil {
-		t.Error(err)
-	}
+		if !errors.Is(err, jwt.ErrUnsupportedTokenType) {
+			t.Error(err)
+		}
+	})
 
-	if tokenStr != excepted {
-		t.Errorf("excepted: '%s', got: '%s'", excepted, tokenStr)
-	}
-}
+	t.Run("Verify HS256", func(t *testing.T) {
+		t.Parallel()
 
-func TestSignRS384(t *testing.T) {
-	t.Parallel()
+		tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
 
-	excepted := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.VUugIiYP9KU8jPfYpWtLm3l2iYnM6z09pEPvlkYd4gs72AzBn-vkklhPSn31RO2fH9Xnu6cfL975Zd_kEZKCC0zKZlkmT1GC2b_UKK6kR_iwMdLMIcdtiDKjZK6svPV9AcPGxBZWQh98gznBwNphfkCsZzq0WriSkHbiRA7N7WbwcZt4SPjG76uM4TWBHwBf62AJ9rHFrtt05J0sSzFUqRZe32f_NehvmpY9wLQ4wA4pmzbYe9pR0iY0D-TZ0G5uFiwG10mh8EARi5VCpNgVsziX3B4mAlTj5369DbAeEGw9f_iNqDPhWbshoCpiv94Z4V3bgWT0c7pYP2Sfam6zWQ"
-	token := jwt.New(jwt.RS384)
+		err := jwt.Verify(tokenStr, secret)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-	tokenStr, err := jwt.Sign(*token, private)
-	if err != nil {
-		t.Error(err)
-	}
+	t.Run("Verify HS256 with invalid signature", func(t *testing.T) {
+		t.Parallel()
 
-	if tokenStr != excepted {
-		t.Errorf("excepted: '%s', got: '%s'", excepted, tokenStr)
-	}
-}
+		tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.ZGV2aWwK"
 
-func TestSignRS512(t *testing.T) {
-	t.Parallel()
+		err := jwt.Verify(tokenStr, secret)
+		if err == nil {
+			t.Error("excepted error but got nil")
 
-	excepted := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.TAc6Fs7zC82s2CwCp8Y7flotPYpnrn0PzZImM3QH9uMfw-I8xySlVosKe9VyQ6CPuO8BWmkW5t9GD4QoN8glKW_bTTBQGM0eLTftSQoUVn8djQkWzCPjol3RWbZvBs6k9RphUF3qibzL9DOYCn8Vsmrwj9RhzDAs1dpeBzEqC_mxtxWDW8rnetp3Kwj2cDZjRPUi9IPFL6ccbvfC9CxsXhrMKccUzb4Yw9YukvuO93QNN_pPCazQFY2zCL2yvBvUpPbHnOdGCX41z_TZY1P7sea5SsGcGv5YOCxKdVTPF3WRhaUhOkY7-AAqMuJZbWxkhkE1OjBwgWj-L28nTKOwVw"
-	token := jwt.New(jwt.RS512)
+			return
+		}
 
-	tokenStr, err := jwt.Sign(*token, private)
-	if err != nil {
-		t.Error(err)
-	}
+		if !errors.Is(err, jwt.ErrInvalidTokenSignature) {
+			t.Error(err)
+		}
+	})
 
-	if tokenStr != excepted {
-		t.Errorf("excepted: '%s', got: '%s'", excepted, tokenStr)
-	}
-}
+	t.Run("Verify HS384", func(t *testing.T) {
+		t.Parallel()
 
-func TestVerifyInvalidToken(t *testing.T) {
-	t.Parallel()
+		tokenStr := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.Tesq3qahWM2tdkVGIMTRB0uoCV93sZHHZdwcVfwatm-dA6xXVzItk4Y1tkBbP0rT"
 
-	tokenStr := "invalid"
+		err := jwt.Verify(tokenStr, secret)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-	err := jwt.Verify(tokenStr, secret)
-	if err == nil {
-		t.Error("excepted error but got nil")
+	t.Run("Verify HS384 with invalid signature", func(t *testing.T) {
+		t.Parallel()
 
-		return
-	}
+		tokenStr := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.ZGV2aWwK"
 
-	excepted := "invalid token provided"
-	if err.Error() != excepted {
-		t.Errorf("excepted error: %s, got: %s", excepted, err.Error())
-	}
-}
+		err := jwt.Verify(tokenStr, secret)
+		if err == nil {
+			t.Error("excepted error but got nil")
 
-func TestVerifyHS256(t *testing.T) {
-	t.Parallel()
+			return
+		}
 
-	tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
+		if !errors.Is(err, jwt.ErrInvalidTokenSignature) {
+			t.Error(err)
+		}
+	})
 
-	err := jwt.Verify(tokenStr, secret)
-	if err != nil {
-		t.Error(err)
-	}
-}
+	t.Run("Verify HS512", func(t *testing.T) {
+		t.Parallel()
 
-func TestVerifyHS384(t *testing.T) {
-	t.Parallel()
+		tokenStr := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.A86BXmxG5KZJeJlLLQGQiLFTeVIFWtaavXtgWRFZjhO-XvhLzSkWjVQ42ijGzDrRfz3LClikgNNz_d3tA7NOdw"
 
-	tokenStr := "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.e30.Tesq3qahWM2tdkVGIMTRB0uoCV93sZHHZdwcVfwatm-dA6xXVzItk4Y1tkBbP0rT"
+		err := jwt.Verify(tokenStr, secret)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-	err := jwt.Verify(tokenStr, secret)
-	if err != nil {
-		t.Error(err)
-	}
-}
+	t.Run("Verify HS512 with invalid signature", func(t *testing.T) {
+		t.Parallel()
 
-func TestVerifyHS512(t *testing.T) {
-	t.Parallel()
+		tokenStr := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.ZGV2aWwK"
 
-	tokenStr := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.A86BXmxG5KZJeJlLLQGQiLFTeVIFWtaavXtgWRFZjhO-XvhLzSkWjVQ42ijGzDrRfz3LClikgNNz_d3tA7NOdw"
+		err := jwt.Verify(tokenStr, secret)
+		if err == nil {
+			t.Error("excepted error but got nil")
 
-	err := jwt.Verify(tokenStr, secret)
-	if err != nil {
-		t.Error(err)
-	}
-}
+			return
+		}
 
-func TestVerifyRS256(t *testing.T) {
-	t.Parallel()
+		if !errors.Is(err, jwt.ErrInvalidTokenSignature) {
+			t.Error(err)
+		}
+	})
 
-	tokenStr := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.B1Q-D-h1NW2DbAippP-l6H9YHX22HnZZl15PHO7CC6K0ZcbnOr0IjnyOZFeLUB-02z3ausdsWn7FlZj_juqRfeIlpP7ysJwp0kPGpGJqXE-YlrOrR_KRcs7EjIb53ICV76WPP149h_qu57hIYAlJwSZgy77wkXKoq73psXI0ZAl_0YC7kgGyz_aE7Wwk3-BLcEqhKyC6yG4RoBzqHJgZXEShYUkCWjdwa5O3ogQ0-dMtjp3jXG-l42RaOJqqNYNegBstQWL874hfYQcVxuWdTeBtqTqXsGp2sH60NEd5h6Z-3Ef0nw0bbCTK0ustCHZn5RN4HHvCiazriqK4CdkPrw"
+	t.Run("Verify RS256", func(t *testing.T) {
+		t.Parallel()
 
-	err := jwt.Verify(tokenStr, public)
-	if err != nil {
-		t.Error(err)
-	}
-}
+		tokenStr := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.B1Q-D-h1NW2DbAippP-l6H9YHX22HnZZl15PHO7CC6K0ZcbnOr0IjnyOZFeLUB-02z3ausdsWn7FlZj_juqRfeIlpP7ysJwp0kPGpGJqXE-YlrOrR_KRcs7EjIb53ICV76WPP149h_qu57hIYAlJwSZgy77wkXKoq73psXI0ZAl_0YC7kgGyz_aE7Wwk3-BLcEqhKyC6yG4RoBzqHJgZXEShYUkCWjdwa5O3ogQ0-dMtjp3jXG-l42RaOJqqNYNegBstQWL874hfYQcVxuWdTeBtqTqXsGp2sH60NEd5h6Z-3Ef0nw0bbCTK0ustCHZn5RN4HHvCiazriqK4CdkPrw"
 
-func TestVerifyRS384(t *testing.T) {
-	t.Parallel()
+		err := jwt.Verify(tokenStr, public)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-	tokenStr := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.VUugIiYP9KU8jPfYpWtLm3l2iYnM6z09pEPvlkYd4gs72AzBn-vkklhPSn31RO2fH9Xnu6cfL975Zd_kEZKCC0zKZlkmT1GC2b_UKK6kR_iwMdLMIcdtiDKjZK6svPV9AcPGxBZWQh98gznBwNphfkCsZzq0WriSkHbiRA7N7WbwcZt4SPjG76uM4TWBHwBf62AJ9rHFrtt05J0sSzFUqRZe32f_NehvmpY9wLQ4wA4pmzbYe9pR0iY0D-TZ0G5uFiwG10mh8EARi5VCpNgVsziX3B4mAlTj5369DbAeEGw9f_iNqDPhWbshoCpiv94Z4V3bgWT0c7pYP2Sfam6zWQ"
+	t.Run("Verify RS256 with invalid signature", func(t *testing.T) {
+		t.Parallel()
 
-	err := jwt.Verify(tokenStr, public)
-	if err != nil {
-		t.Error(err)
-	}
-}
+		tokenStr := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.ZGV2aWwK"
 
-func TestVerifyRS512(t *testing.T) {
-	t.Parallel()
+		err := jwt.Verify(tokenStr, public)
+		if err == nil {
+			t.Error("excepted error but got nil")
 
-	tokenStr := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.TAc6Fs7zC82s2CwCp8Y7flotPYpnrn0PzZImM3QH9uMfw-I8xySlVosKe9VyQ6CPuO8BWmkW5t9GD4QoN8glKW_bTTBQGM0eLTftSQoUVn8djQkWzCPjol3RWbZvBs6k9RphUF3qibzL9DOYCn8Vsmrwj9RhzDAs1dpeBzEqC_mxtxWDW8rnetp3Kwj2cDZjRPUi9IPFL6ccbvfC9CxsXhrMKccUzb4Yw9YukvuO93QNN_pPCazQFY2zCL2yvBvUpPbHnOdGCX41z_TZY1P7sea5SsGcGv5YOCxKdVTPF3WRhaUhOkY7-AAqMuJZbWxkhkE1OjBwgWj-L28nTKOwVw"
+			return
+		}
 
-	err := jwt.Verify(tokenStr, public)
-	if err != nil {
-		t.Error(err)
-	}
+		if !errors.Is(err, jwt.ErrInvalidTokenSignature) {
+			t.Error(err)
+		}
+	})
+
+	t.Run("Verify RS384", func(t *testing.T) {
+		t.Parallel()
+
+		tokenStr := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.VUugIiYP9KU8jPfYpWtLm3l2iYnM6z09pEPvlkYd4gs72AzBn-vkklhPSn31RO2fH9Xnu6cfL975Zd_kEZKCC0zKZlkmT1GC2b_UKK6kR_iwMdLMIcdtiDKjZK6svPV9AcPGxBZWQh98gznBwNphfkCsZzq0WriSkHbiRA7N7WbwcZt4SPjG76uM4TWBHwBf62AJ9rHFrtt05J0sSzFUqRZe32f_NehvmpY9wLQ4wA4pmzbYe9pR0iY0D-TZ0G5uFiwG10mh8EARi5VCpNgVsziX3B4mAlTj5369DbAeEGw9f_iNqDPhWbshoCpiv94Z4V3bgWT0c7pYP2Sfam6zWQ"
+
+		err := jwt.Verify(tokenStr, public)
+		if err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run("Verify RS384 with invalid signature", func(t *testing.T) {
+		t.Parallel()
+
+		tokenStr := "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.e30.ZGV2aWwK"
+
+		err := jwt.Verify(tokenStr, public)
+		if err == nil {
+			t.Error("excepted error but got nil")
+
+			return
+		}
+
+		if !errors.Is(err, jwt.ErrInvalidTokenSignature) {
+			t.Error(err)
+		}
+	})
+
+	t.Run("Verify RS512", func(t *testing.T) {
+		t.Parallel()
+
+		tokenStr := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.TAc6Fs7zC82s2CwCp8Y7flotPYpnrn0PzZImM3QH9uMfw-I8xySlVosKe9VyQ6CPuO8BWmkW5t9GD4QoN8glKW_bTTBQGM0eLTftSQoUVn8djQkWzCPjol3RWbZvBs6k9RphUF3qibzL9DOYCn8Vsmrwj9RhzDAs1dpeBzEqC_mxtxWDW8rnetp3Kwj2cDZjRPUi9IPFL6ccbvfC9CxsXhrMKccUzb4Yw9YukvuO93QNN_pPCazQFY2zCL2yvBvUpPbHnOdGCX41z_TZY1P7sea5SsGcGv5YOCxKdVTPF3WRhaUhOkY7-AAqMuJZbWxkhkE1OjBwgWj-L28nTKOwVw"
+
+		err := jwt.Verify(tokenStr, public)
+		if err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run("Verify RS512 with invalid signature", func(t *testing.T) {
+		t.Parallel()
+
+		tokenStr := "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.e30.ZGV2aWwK"
+
+		err := jwt.Verify(tokenStr, public)
+		if err == nil {
+			t.Error("excepted error but got nil")
+
+			return
+		}
+
+		if !errors.Is(err, jwt.ErrInvalidTokenSignature) {
+			t.Error(err)
+		}
+	})
 }
 
 func TestParse(t *testing.T) {
 	t.Parallel()
 
-	tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
+	t.Run("Empty", func(t *testing.T) {
+		t.Parallel()
 
-	token, err := jwt.Parse(tokenStr)
-	if err != nil {
-		t.Error(err)
-	}
+		tokenStr := ""
 
-	if token == nil {
-		t.Error("excepted token but got nil")
-	}
+		token, err := jwt.Parse(tokenStr)
+		if err == nil {
+			t.Errorf("expected error but got nil")
+		}
+
+		if !errors.Is(err, jwt.ErrInvalidToken) {
+			t.Error(err)
+		}
+
+		if token != nil {
+			t.Errorf("excepted nil but got '%T'", token)
+		}
+	})
+
+	t.Run("Valid HS256", func(t *testing.T) {
+		t.Parallel()
+
+		tokenStr := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HUfJqC1q8JUPKD4jj8PZAYppSrQRL8tJHTljdcTfFCQ"
+
+		token, err := jwt.Parse(tokenStr)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if token == nil {
+			t.Error("excepted token but got nil")
+		}
+	})
 }
