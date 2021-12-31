@@ -26,7 +26,7 @@ type Header struct {
 // Payload is json web token payload.
 type Payload map[string]interface{}
 
-// Algorithm type.
+// Algorithm is json web token algorithm.
 type Algorithm string
 
 // Algorithms.
