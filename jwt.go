@@ -23,6 +23,8 @@ type Header struct {
 	Type      string    `json:"typ"`
 }
 
+const typeJWT = "JWT"
+
 // Payload is json web token payload.
 type Payload map[string]interface{}
 
@@ -251,7 +253,7 @@ func New(alg Algorithm) *Token {
 	return &Token{
 		header: Header{
 			Algorithm: alg,
-			Type:      "JWT",
+			Type:      typeJWT,
 		},
 		payload: map[string]interface{}{},
 	}
@@ -396,7 +398,8 @@ func Verify(t string, key []byte) error {
 		return fmt.Errorf("invalid token header: %w", err)
 	}
 
-	if typ := tok.header.Type; typ != "JWT" {
+	// https://datatracker.ietf.org/doc/html/rfc7519#section-5.1
+	if typ := tok.header.Type; strings.ToUpper(typ) != typeJWT {
 		return ErrUnsupportedTokenType
 	}
 
